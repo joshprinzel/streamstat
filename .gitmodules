@@ -1,0 +1,3 @@
+[submodule "external/fastnum"]
+	path = external/fastnum
+	url = https://github.com/joshprinzel/fastnum

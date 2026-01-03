@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+f2565437d918de8815ae56543b6eae81 CMakeFiles/streamfeat_gen_dir
+667f6e57ae939efd6835ce87c938627d generated/streamfeat.grpc.pb.cc
+762e913c5270648a14d20b5cb851ac52 generated/streamfeat.pb.cc

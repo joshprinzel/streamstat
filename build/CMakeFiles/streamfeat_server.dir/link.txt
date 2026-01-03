@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/streamfeat_server.dir/src/main.cpp.o CMakeFiles/streamfeat_server.dir/generated/streamfeat.pb.cc.o CMakeFiles/streamfeat_server.dir/generated/streamfeat.grpc.pb.cc.o -o streamfeat_server  /usr/lib/x86_64-linux-gnu/libprotobuf.so -lgrpc++ -lgrpc -lgpr 

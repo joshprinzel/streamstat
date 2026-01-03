@@ -1,0 +1,12 @@
+syntax = "proto3";
+package streamfeat;
+
+service StreamFeat {
+  rpc Ping (PingRequest) returns (PingReply);
+}
+
+message PingRequest {}
+
+message PingReply {
+  string message = 1;
+}
