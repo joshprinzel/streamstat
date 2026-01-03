@@ -89,3 +89,54 @@ target_link_libraries(streamfeat_server PRIVATE
 
 # Optional: makes warnings from pkg-config not spam the output
 target_compile_options(streamfeat_server PRIVATE ${GRPCPP_CFLAGS_OTHER})
+
+add_library(streamfeat_core
+  src/core/window_state.cpp  
+)
+
+target_include_directories(streamfeat_core PUBLIC 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(streamfeat_core PUBLIC fastnum::fastnum)
+# ----------------------------
+# Tests (Catch2)
+# ----------------------------
+option(STREAMFEAT_BUILD_TESTS "Build streamfeat tests" ON)
+
+if (STREAMFEAT_BUILD_TESTS)
+  include(CTest)
+  enable_testing()
+
+  include(FetchContent)
+  FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.5.4
+  )
+  FetchContent_MakeAvailable(Catch2)
+
+  file(GLOB TEST_SOURCES CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_*.cpp
+  )
+
+  add_executable(streamfeat_tests ${TEST_SOURCES})
+
+  target_link_libraries(streamfeat_tests PRIVATE
+    Catch2::Catch2WithMain
+    streamfeat_core
+  )
+
+  target_include_directories(streamfeat_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
+
+  # Nice to keep warnings consistent (optional)
+  target_compile_options(streamfeat_tests PRIVATE ${GRPCPP_CFLAGS_OTHER})
+
+  # Catch2 test discovery
+  list(APPEND CMAKE_MODULE_PATH "${Catch2_SOURCE_DIR}/extras")
+  include(Catch)
+  catch_discover_tests(streamfeat_tests)
+endif()
+

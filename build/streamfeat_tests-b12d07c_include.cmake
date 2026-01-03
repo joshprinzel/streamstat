@@ -1,0 +1,5 @@
+if(EXISTS "/mnt/c/Users/joshp_ya/VSCodeProjects/Personal/streamstat/build/streamfeat_tests-b12d07c_tests.cmake")
+  include("/mnt/c/Users/joshp_ya/VSCodeProjects/Personal/streamstat/build/streamfeat_tests-b12d07c_tests.cmake")
+else()
+  add_test(streamfeat_tests_NOT_BUILT-b12d07c streamfeat_tests_NOT_BUILT-b12d07c)
+endif()

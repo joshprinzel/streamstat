@@ -1,0 +1,2 @@
+/usr/bin/ar qc libstreamfeat_core.a CMakeFiles/streamfeat_core.dir/src/core/window_state.cpp.o
+/usr/bin/ranlib libstreamfeat_core.a

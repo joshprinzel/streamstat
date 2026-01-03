@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/streamfeat_tests.dir/tests/test_window_state.cpp.o -o streamfeat_tests  _deps/catch2-build/src/libCatch2Main.a libstreamfeat_core.a _deps/catch2-build/src/libCatch2.a 

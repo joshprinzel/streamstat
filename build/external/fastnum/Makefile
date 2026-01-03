@@ -65,6 +65,16 @@ CMAKE_BINARY_DIR = /mnt/c/Users/joshp_ya/VSCodeProjects/Personal/streamstat/buil
 #=============================================================================
 # Targets provided globally by CMake.
 
+# Special rule for the target test
+test:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running tests..."
+	/usr/bin/ctest --force-new-ctest-process $(ARGS)
+.PHONY : test
+
+# Special rule for the target test
+test/fast: test
+.PHONY : test/fast
+
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
@@ -113,6 +123,7 @@ preinstall/fast:
 
 # clear depends
 depend:
+	cd /mnt/c/Users/joshp_ya/VSCodeProjects/Personal/streamstat/build && $(CMAKE_COMMAND) -P /mnt/c/Users/joshp_ya/VSCodeProjects/Personal/streamstat/build/CMakeFiles/VerifyGlobs.cmake
 	cd /mnt/c/Users/joshp_ya/VSCodeProjects/Personal/streamstat/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
@@ -124,6 +135,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... test"
 .PHONY : help
 
 
@@ -135,6 +147,7 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
+	cd /mnt/c/Users/joshp_ya/VSCodeProjects/Personal/streamstat/build && $(CMAKE_COMMAND) -P /mnt/c/Users/joshp_ya/VSCodeProjects/Personal/streamstat/build/CMakeFiles/VerifyGlobs.cmake
 	cd /mnt/c/Users/joshp_ya/VSCodeProjects/Personal/streamstat/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 
