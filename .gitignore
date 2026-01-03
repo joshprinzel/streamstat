@@ -1,41 +1,70 @@
-# Prerequisites
-*.d
+# ================================
+# Build artifacts (CMake)
+# ================================
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+CTestTestfile.cmake
+Makefile
+install_manifest.txt
 
-# Compiled Object files
-*.slo
-*.lo
+# Generated protobuf / gRPC code
+generated/
+
+# ================================
+# Object / binary files
+# ================================
 *.o
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
+*.lo
+*.la
+*.a
 *.so
 *.dylib
 *.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
 *.exe
 *.out
 *.app
 
-# debug information files
+# ================================
+# Debug / profiling artifacts
+# ================================
+*.pdb
 *.dwo
+*.ilk
+*.gcda
+*.gcno
+*.prof
+*.perf
+
+# ================================
+# Precompiled headers
+# ================================
+*.gch
+*.pch
+
+# ================================
+# Editor / OS junk
+# ================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ================================
+# FetchContent / external deps
+# (optional — keep if you vendor deps)
+# ================================
+_build/
+deps/
+_external/
+
+# If you vendor fastnum but not its build outputs
+external/fastnum/build/
+
+# ================================
+# Misc
+# ================================
+*.log
+*.tmp
