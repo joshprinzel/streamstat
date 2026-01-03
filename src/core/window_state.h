@@ -1,38 +1,77 @@
-/*
-    WindowState invariants
+#pragma once
 
-    Time Semantics
-    1. Fixed bucket width: The window is partitioned into buckets of width W = bucket_width_ms
-    2. Bucket alignment: Any timestamp t belongs to the bucket whose start is start = floor(t/W) * W
-    3. Window coverage: At any moment "now", the window represents the interval [now - (N*W) + W, now] in bucket units (i.e., it can hold at most N distinct bucket-start times)
+#include <cstdint>
+#include <limits>
+#include <memory_resource>
+#include <unordered_map>
+#include <vector>
 
-    Ring buffer / ovewrite Semantics
-    4. Fixed Storage: The window stores exactly N = num_buckets bucket slots (no growth)
-    5. Slot mapping: A bucket with aligned start s maps to index idx = (s/W) % N
-    6. Staleness check: A slot is valid for start time s if and only if slot.bucket_start_ms == s.
-    7. Overwrite on reuse: If a slot is accessed for a different start time, it is reset (clears stats, sets new bucket_start_ms). Old data is considered expire/overwritten.
+#include <fastnum/running_stats.hpp>
 
-    Statistical Correctness
-    8. Per-bucket summaries: Each bucket stores per-feature RunningStats that summarize only values observed whose timestamps fall in that bucket's interval.
-    9. Window snapshot: Querying window stats returns a snapshot computed by merging the valid buckets' per-feature RunningStats. (This does not mutate the window.)
-    10. Single-Write assumption: Observe is called only by the owning shard worker thread. No internal locks required.
+// WindowState
+//
+// Rolling window of per-feature online statistics over fixed-width time buckets.
+// Designed for single-writer shard ownership (no internal locking).
+//
+// Core invariants:
+// - Bucket width is fixed: W = bucket_width_ms_
+// - Timestamp t maps to aligned bucket start: s = floor(t / W) * W
+// - Window storage is fixed: N = num_buckets_ bucket slots (ring buffer)
+// - Slot index: idx = (s / W) % N
+// - Bucket slot is valid for s iff bucket.start_ms == s
+// - On slot reuse (stale bucket), bucket is reset (clears per-feature stats)
+//
+// Query semantics:
+// - Aggregate(feature_id, now_ms) returns a snapshot over buckets with start_ms in:
+//   [Align(now_ms) - (N - 1) * W, Align(now_ms)]
+// - Aggregate does not mutate window state.
+//
+// Complexity:
+// - Observe: expected O(1) per (feature_id, value) update (hash-map access)
+// - Aggregate: O(N) buckets + hash lookups
+class WindowState {
+public:
+  WindowState(int64_t bucket_width_ms,
+              int32_t num_buckets,
+              std::pmr::memory_resource* mr);
 
-    Memory / PMR intent 
-    11. Allocator ownership: All internal containers are allocator-aware (std::pmr::*) and use the window's memory resource (ultimately shard pool/scratch).
-    12. No per-observation frees: Bucket reuse clears containers; long-lived allocations come from the pool; scratch allocations are reset at batch boundaries (later).
-*/
+  // Hot path: record a single observed value for a feature at timestamp_ms.
+  // Assumes: called only by owning shard worker thread (single-writer).
+  void Observe(int32_t feature_id, double value, int64_t timestamp_ms);
 
+  // Read path: compute window snapshot stats for feature_id at logical time now_ms.
+  // Does not mutate internal state.
+  fastnum::RunningStats<double> Aggregate(int32_t feature_id, int64_t now_ms) const;
 
+  int64_t bucket_width_ms() const { return bucket_width_ms_; }
+  int32_t num_buckets() const { return num_buckets_; }
 
-/*
-    Observe(feature_id, value, timestamp_ms) Algorithm Pseudo-Code
-    For each (feature_id, value, timestamp_ms)
-        1. Compute aligned_start = floor(timestamp_ms / W) * W
-        2. Compute idx = (aligned_start /W) % N
-        3. Bucket& b = buckets[idx]
-        4. If b.start_ms != aligned_start -> reset bucket
-            b.start = aligned_start
-            b.stats.clear()
-        5. Update:
-            b.stats[feature_idx].Observe(value)
-*/
+private:
+  struct Bucket {
+    static constexpr int64_t kNeverUsed = std::numeric_limits<int64_t>::min();
+
+    int64_t start_ms = kNeverUsed; // aligned bucket start timestamp
+    std::pmr::unordered_map<int32_t, fastnum::RunningStats<double>> stats;
+
+    explicit Bucket(std::pmr::memory_resource* mr) : stats(mr) {}
+
+    void Reset(int64_t new_start_ms) {
+      start_ms = new_start_ms;
+      stats.clear();
+    }
+  };
+
+  static int64_t Align_(int64_t t_ms, int64_t w_ms);
+  int32_t IndexFromAlignedStart_(int64_t aligned_start_ms) const;
+
+  // Returns mutable bucket for timestamp. Resets slot if stale.
+  Bucket& BucketFor_(int64_t timestamp_ms);
+
+  // Query-time bounds for a window snapshot
+  int64_t QueryStart_(int64_t now_ms) const;
+  int64_t QueryEnd_(int64_t now_ms) const;
+
+  int64_t bucket_width_ms_;
+  int32_t num_buckets_;
+  std::pmr::vector<Bucket> buckets_;
+};
