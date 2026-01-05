@@ -13,7 +13,7 @@
 TEST_CASE("values in same bucket accumulate") {
   // Guard: alignment must map multiple timestamps within [0, W) to the same bucket.
   std::pmr::unsynchronized_pool_resource pool;
-  WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, &pool);
+  WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, pool);
 
   // Both timestamps align to bucket start 0ms.
   w.Observe(1, 1.0, 100);
@@ -27,7 +27,7 @@ TEST_CASE("values in same bucket accumulate") {
 TEST_CASE("bucket boundary splits correctly") {
   // Guard: boundary behavior uses floor(t/W)*W (t==W is in the next bucket).
   std::pmr::unsynchronized_pool_resource pool;
-  WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, &pool);
+  WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, pool);
 
   // 999ms -> bucket 0ms, 1000ms -> bucket 1000ms
   w.Observe(1, 1.0, 999);
@@ -41,7 +41,7 @@ TEST_CASE("ring overwrites oldest bucket") {
   // Guard: after advancing past N buckets, the oldest bucket must be dropped.
   // Here: N=3, W=1000ms. We insert 4 distinct bucket intervals.
   std::pmr::unsynchronized_pool_resource pool;
-  WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, &pool);
+  WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, pool);
 
   w.Observe(1, 1.0, 100);   // bucket 0
   w.Observe(1, 1.0, 1100);  // bucket 1000
@@ -56,7 +56,7 @@ TEST_CASE("query window excludes old buckets") {
   // Guard: Aggregate must apply query-time bounds, not merely "slot validity".
   // At now=4000, aligned end=4000 and window covers [2000, 4000] for N=3,W=1000.
   std::pmr::unsynchronized_pool_resource pool;
-  WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, &pool);
+  WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, pool);
 
   w.Observe(1, 1.0, 0);
   w.Observe(1, 1.0, 1000);
@@ -70,7 +70,7 @@ TEST_CASE("out-of-order events within are included"){
     // Guard: Observe must not assume timsetamps are monotonic; ordering should not matter
     // as long as events fall within the query window
     std::pmr::unsynchronized_pool_resource pool;
-    WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, &pool);
+    WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, pool);
 
     //Insert newer bucket first, then an older bucket still inside the window.
     w.Observe(1, 10.0, 2100); //bucket 2000

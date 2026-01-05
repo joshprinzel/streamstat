@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 #include <limits>
 #include <memory_resource>
 #include <unordered_map>
@@ -31,26 +32,23 @@
 // - Aggregate: O(N) buckets + hash lookups
 class WindowState {
 public:
-  WindowState(int64_t bucket_width_ms,
-              int32_t num_buckets,
-              std::pmr::memory_resource* mr);
+  explicit WindowState(int64_t bucket_width_ms,
+                       std::size_t num_buckets,
+                       std::pmr::memory_resource& mr);
 
-  // Hot path: record a single observed value for a feature at timestamp_ms.
-  // Assumes: called only by owning shard worker thread (single-writer).
   void Observe(int32_t feature_id, double value, int64_t timestamp_ms);
 
-  // Read path: compute window snapshot stats for feature_id at logical time now_ms.
-  // Does not mutate internal state.
-  fastnum::RunningStats<double> Aggregate(int32_t feature_id, int64_t now_ms) const;
+  [[nodiscard]] fastnum::RunningStats<double>
+  Aggregate(int32_t feature_id, int64_t now_ms) const;
 
-  int64_t bucket_width_ms() const { return bucket_width_ms_; }
-  int32_t num_buckets() const { return num_buckets_; }
+  int64_t bucket_width_ms() const noexcept { return bucket_width_ms_; }
+  std::size_t num_buckets() const noexcept { return num_buckets_; }
 
 private:
   struct Bucket {
     static constexpr int64_t kNeverUsed = std::numeric_limits<int64_t>::min();
 
-    int64_t start_ms = kNeverUsed; // aligned bucket start timestamp
+    int64_t start_ms = kNeverUsed;
     std::pmr::unordered_map<int32_t, fastnum::RunningStats<double>> stats;
 
     explicit Bucket(std::pmr::memory_resource* mr) : stats(mr) {}
@@ -58,20 +56,24 @@ private:
     void Reset(int64_t new_start_ms) {
       start_ms = new_start_ms;
       stats.clear();
+      // Optional memory-bounding behavior:
+      // stats.rehash(0);
     }
   };
 
-  static int64_t Align_(int64_t t_ms, int64_t w_ms);
-  int32_t IndexFromAlignedStart_(int64_t aligned_start_ms) const;
+  static constexpr int64_t Align_(int64_t t_ms, int64_t w_ms) noexcept {
+    // Preconditions enforced at API boundary and/or via asserts in callers.
+    return (t_ms / w_ms) * w_ms;
+  }
 
-  // Returns mutable bucket for timestamp. Resets slot if stale.
-  Bucket& BucketFor_(int64_t timestamp_ms);
+  std::size_t RingIndexForAlignedStart_(int64_t aligned_start_ms) const noexcept;
 
-  // Query-time bounds for a window snapshot
-  int64_t QueryStart_(int64_t now_ms) const;
-  int64_t QueryEnd_(int64_t now_ms) const;
+  Bucket& GetOrResetBucketFor_(int64_t timestamp_ms);
+
+  int64_t QueryStart_(int64_t now_ms) const noexcept;
+  int64_t QueryEnd_(int64_t now_ms) const noexcept;
 
   int64_t bucket_width_ms_;
-  int32_t num_buckets_;
+  std::size_t num_buckets_;
   std::pmr::vector<Bucket> buckets_;
 };
