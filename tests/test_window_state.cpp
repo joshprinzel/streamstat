@@ -33,8 +33,8 @@ TEST_CASE("bucket boundary splits correctly") {
   w.Observe(1, 1.0, 999);
   w.Observe(1, 3.0, 1000);
 
-  auto s = w.Aggregate(1, /*now_ms=*/1000);
-  REQUIRE(s.count() == 2);
+  auto s = w.Aggregate(1, /*now_ms=*/999);
+  REQUIRE(s.count() == 1);
 }
 
 TEST_CASE("ring overwrites oldest bucket") {
@@ -79,4 +79,25 @@ TEST_CASE("out-of-order events within are included"){
     auto s = w.Aggregate(1, /*now_ms=*/ 2100);
     REQUIRE(s.count() == 2);
     REQUIRE(s.mean() == Catch::Approx(15.0));
+}
+
+TEST_CASE("late event can overwrite newer bucket if outside retention") {
+  std::pmr::unsynchronized_pool_resource pool;
+  WindowState w(/*bucket_width_ms=*/1000, /*num_buckets=*/3, pool);
+
+  w.Observe(1, 1.0, 3100); // bucket 3000
+  w.Observe(1, 5.0, 100);  // bucket 0 overwrites same ring slot
+
+  // now=3100 => range [1000,3000]; bucket 3000 wiped, bucket 0 excluded
+  {
+    auto s = w.Aggregate(1, /*now_ms=*/3100);
+    REQUIRE(s.count() == 0);
+  }
+
+  // now=100 => end=0 => range [-2000,0]; bucket 0 included
+  {
+    auto s = w.Aggregate(1, /*now_ms=*/100);
+    REQUIRE(s.count() == 1);
+    REQUIRE(s.mean() == Catch::Approx(5.0));
+  }
 }

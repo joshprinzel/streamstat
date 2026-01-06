@@ -1,3 +1,4 @@
+#pragma once
 #include "core/window_state.h"
 #include <algorithm>
 // WindowState invariants:
@@ -52,12 +53,12 @@ class EntityState{
             last_seen_ms_ = std::max(last_seen_ms_, timestamp_ms);
         }
 
-        [[nodiscard]] int64_t last_seen_ms() const noexcept{ return last_seen_ms_};
-        [[nodiscard]] const WindowState& short_window() const noexcept{ return short_w_};
-        [[nodiscard]] const WindowState& long_window() const noexcept{ return long_w_};
+        [[nodiscard]] int64_t last_seen_ms() const noexcept{ return last_seen_ms_;}
+        [[nodiscard]] const WindowState& short_window() const noexcept{ return short_w_;}
+        [[nodiscard]] const WindowState& long_window() const noexcept{ return long_w_;}
         
     private:
         int64_t last_seen_ms_;
         WindowState short_w_; //5 min ring
         WindowState long_w_; //1 hr ring
-}
+};
