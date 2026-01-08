@@ -280,21 +280,49 @@ Before/after results documented
 	- drift calculation logic
 - Load generator for reproducible benchmarks
 
-
 ## Repo Layout
-```
-	streamfeat/
-	├── CMakeLists.txt
-	├── proto/streamfeat.proto
-	├── src/
-	│   ├── main.cpp
-	│   ├── server/
-	│   ├── core/
-	│   └── util/
-	├── tests/
-	├── bench/
-	└── README.md
-```
+streamfeat/
+├── CMakeLists.txt
+├── README.md
+├── proto/
+│   └── streamfeat.proto                # later (gRPC)
+├── include/                            # public headers (library interface)
+│   └── streamfeat/
+│       ├── core/
+│       │   ├── window_state.h
+│       │   └── entity_state.h
+│       ├── runtime/
+│       │   ├── bounded_queue.h
+│       │   ├── shard.h
+│       │   └── backend.h
+│       ├── types.h                     # Event, EventBatch, FeatureValue
+│       └── metrics/
+│           ├── counters.h              # simple counters/hist (v0)
+│           └── hist.h
+├── src/                                # implementations (non-template)
+│   ├── core/
+│   │   └── window_state.cpp
+│   ├── runtime/
+│   │   ├── shard.cpp
+│   │   └── backend.cpp
+│   └── server/
+│       └── grpc_server.cpp             # later
+├── bench/
+│   └── loadgen_main.cpp                # drives Backend directly (no gRPC)
+├── tests/
+│   ├── bounded_queue_test.cpp
+│   ├── window_state_test.cpp
+│   └── entity_state_test.cpp
+├── scripts/
+│   ├── run_bench.sh                    # reproducible runs
+│   └── plot.py                         # generate your plots
+└── docs/
+    ├── memos/
+    │   └── 2026-02-queue-backpressure.md
+    └── design/
+        ├── architecture.md
+        └── invariants.md
+
 
 ## "Done" criteria
 This project is complete when:

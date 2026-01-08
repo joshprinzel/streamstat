@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 
-#include "core/window_state.h"
+#include "streamfeat/core/window_state.h"
 
 // WindowState tests
 //

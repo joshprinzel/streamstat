@@ -1,5 +1,4 @@
 #include <iostream>
-#include "streamfeat.grpc.pb.h"
 #include "fastnum/running_stats.hpp"
 
 int main() {
@@ -10,6 +9,6 @@ int main() {
   std::cout << "n=" << rs.count()
             << " mean=" << rs.mean()
             << " var(sample)=" << rs.variance_sample()
-            << "\n";
+            << ":)\n";
   return 0;
 }

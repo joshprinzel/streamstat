@@ -2,7 +2,7 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
-#include "server/queue.h"
+#include "streamfeat/runtime/queue.h"
 
 TEST_CASE("close wakes a blocked consumer"){
     BoundedQueue<int> q(4);

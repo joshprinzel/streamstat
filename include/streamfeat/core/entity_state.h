@@ -1,5 +1,5 @@
 #pragma once
-#include "core/window_state.h"
+#include "streamfeat/core/window_state.h"
 #include <algorithm>
 // WindowState invariants:
 //

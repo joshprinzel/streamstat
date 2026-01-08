@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "server/queue.h"
+#include "streamfeat/runtime/queue.h"
 
 TEST_CASE("try_push respects capacity") {
     BoundedQueue<int> q(2);

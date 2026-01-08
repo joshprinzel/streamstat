@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
 #include <memory_resource>
-#include "core/entity_state.h"
+#include "streamfeat/core/entity_state.h"
 
 TEST_CASE("EntityState Observe updates both windows and last_seen"){
     std::pmr::unsynchronized_pool_resource pool;
